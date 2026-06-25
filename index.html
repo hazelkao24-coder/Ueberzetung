@@ -1,0 +1,408 @@
+<div id="root"></div>
+
+<style>
+  :root {
+    --paper: #FAF8F4; --card: #FFFFFF; --ink: #232B33; --ink-soft: #5A6570;
+    --line: #E7E2D8; --primary: #2F6F6A; --primary-dk: #235651;
+    --must: #B23A3A; --key: #C08A2E; --fall: #4A6FA5; --gold-bg: #FBF3DF;
+  }
+  * { box-sizing: border-box; }
+  #root {
+    font-family: -apple-system, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--ink); max-width: 720px; margin: 0 auto; padding: 8px 18px 48px; line-height: 1.6;
+  }
+  .top { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .title { font-size: 20px; font-weight: 700; letter-spacing: .3px; }
+  .subtitle { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+  .counts { font-size: 13px; color: var(--ink-soft); text-align: right; }
+  .counts b { color: var(--primary-dk); font-size: 15px; }
+
+  .filters { margin: 18px 0 8px; display: flex; flex-direction: column; gap: 10px; }
+  .filter-row { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+  .filter-label { font-size: 12px; color: var(--ink-soft); width: 56px; flex: none; }
+  .chip { border: 1px solid var(--line); background: var(--card); color: var(--ink-soft); border-radius: 999px; padding: 5px 13px; font-size: 13px; cursor: pointer; transition: all .15s ease; font-family: inherit; }
+  .chip:hover { border-color: var(--primary); }
+  .chip.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .chip.tier-must.on { background: var(--must); border-color: var(--must); }
+  .chip.tier-key.on  { background: var(--key);  border-color: var(--key); }
+  .chip.tier-fall.on { background: var(--fall); border-color: var(--fall); }
+  .chip.dir.on { background: var(--primary-dk); border-color: var(--primary-dk); }
+
+  .toggle-weak { margin-top: 4px; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-soft); cursor: pointer; user-select: none; }
+  .switch { width: 38px; height: 22px; border-radius: 999px; background: var(--line); position: relative; transition: background .15s; }
+  .switch.on { background: var(--primary); }
+  .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left .15s; }
+  .switch.on::after { left: 18px; }
+
+  .progress-wrap { margin: 16px 0 22px; }
+  .bar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; display: flex; }
+  .bar .seg-master { background: var(--primary); }
+  .bar .seg-learn  { background: var(--key); }
+  .legend { font-size: 12px; color: var(--ink-soft); margin-top: 7px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 30px 26px; box-shadow: 0 6px 24px -16px rgba(35,43,51,.35); min-height: 220px; display: flex; flex-direction: column; }
+  .card-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 18px; }
+  .tag { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 6px; letter-spacing: .5px; }
+  .tag.unit { background: #EEF1F0; color: var(--primary-dk); }
+  .tag.tier-must { background: #F6E4E4; color: var(--must); }
+  .tag.tier-key  { background: var(--gold-bg); color: #8A6212; }
+  .tag.tier-fall { background: #E7EDF6; color: var(--fall); }
+  .box-pips { margin-left: auto; font-size: 11px; color: var(--ink-soft); }
+  .pip { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--line); margin-left:3px; vertical-align:middle; }
+  .pip.fill { background: var(--primary); }
+
+  .q { font-size: 20px; line-height: 1.7; color: var(--ink); margin: 0; }
+  .q.de { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 19px; line-height: 1.7; }
+  .a { margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--line); color: var(--primary-dk); }
+  .a.de { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 18px; line-height: 1.75; }
+  .a.zh { font-size: 19px; line-height: 1.7; }
+  .a b, .q b { background: var(--gold-bg); padding: 0 3px; border-radius: 3px; font-weight: 700; color: #6e4f12; }
+
+  .spacer { flex: 1; }
+  .actions { margin-top: 24px; display: flex; gap: 12px; }
+  .btn { flex: 1; font-family: inherit; font-size: 15px; font-weight: 600; padding: 13px; border-radius: 12px; border: 1px solid transparent; cursor: pointer; transition: transform .08s ease, background .15s; }
+  .btn:active { transform: translateY(1px); }
+  .btn-reveal { background: var(--primary); color: #fff; }
+  .btn-reveal:hover { background: var(--primary-dk); }
+  .btn-miss { background: #fff; color: var(--must); border-color: #E6C9C9; }
+  .btn-miss:hover { background: #FBF1F1; }
+  .btn-got { background: #fff; color: var(--primary-dk); border-color: #CFE0DE; }
+  .btn-got:hover { background: #F1F7F6; }
+
+  .empty { text-align: center; padding: 50px 20px; color: var(--ink-soft); }
+  .empty-emoji { font-size: 34px; margin-bottom: 12px; }
+  .hint { font-size: 13px; color: var(--ink-soft); margin-top: 14px; text-align: center; }
+  .reset { margin-top: 26px; text-align: center; }
+  .reset button { background: none; border: none; color: var(--ink-soft); font-size: 12px; cursor: pointer; text-decoration: underline; font-family: inherit; }
+</style>
+
+<script>
+const CARDS = [
+  // ---------- L1 ----------
+  { id:"l1_01", unit:"L1", tier:"must", zh:"\u968f\u7740\u57ce\u5e02\u5316\u8fdb\u7a0b\u7684\u52a0\u901f\u53d1\u5c55\uff0c\u8d8a\u6765\u8d8a\u591a\u7684\u5e74\u8f7b\u4eba\u79bb\u5f00\u5e7f\u9614\u7684\u519c\u6751\uff0c\u6765\u5230\u57ce\u5e02\u5b66\u4e60\u548c\u5de5\u4f5c\u3002", de:"Mit der schnellen Entwicklung der Urbanisierung **verlassen** immer mehr junge Leute die l\u00e4ndlichen Gebiete und gehen in die St\u00e4dte, **um** sich dort fortzubilden oder zu arbeiten." },
+  { id:"l1_02", unit:"L1", tier:"must", zh:"\u4ed6\u4eec\u4e0d\u613f\u50cf\u7236\u8f88\u90a3\u6837\u4e00\u8f88\u5b50\u5b88\u5728\u4e61\u6751\uff0c\u4ece\u4e8b\u67af\u71e5\u7684\u519c\u4e1a\u751f\u4ea7\u3002", de:"Sie wollen nicht wie ihre Eltern das ganze Leben lang in der Heimat bleiben und **sich mit** dem eint\u00f6nigen Ackerbau **besch\u00e4ftigen**." },
+  { id:"l1_03", unit:"L1", tier:"must", zh:"\u4e00\u4e9b\u5bb6\u5ead\u5f0f\u519c\u5e84\u56e0\u6b64\u9762\u4e34\u7740\u540e\u7ee7\u65e0\u4eba\u7684\u56f0\u60d1\u3002", de:"Einige Bauernh\u00f6fe k\u00f6nnen ihren Familienbetrieb nicht in der nachfolgenden Generation weiterf\u00fchren und **geraten** deswegen **in gro\u00dfe Schwierigkeiten**." },
+  { id:"l1_04", unit:"L1", tier:"must", zh:"\u5728\u4eca\u5e74\u7684\u5168\u56fd\u4eba\u6c11\u4ee3\u8868\u5927\u4f1a\u4e0a\uff0c\u515a\u4e2d\u592e\u3001\u56fd\u52a1\u9662\u5bf9\u63d0\u9ad8\u519c\u6c11\u7684\u5e78\u798f\u6307\u6570\u9ad8\u5ea6\u5173\u6ce8\u3002", de:"Auf dem diesj\u00e4hrigen nationalen Volkskongress haben das Zentralkomitee der KP Chinas und der Staatsrat gro\u00dfe **Aufmerksamkeit auf** den Gl\u00fccksindex der Bauern **gelegt**." },
+  { id:"l1_05", unit:"L1", tier:"must", zh:"\u603b\u7406\u5728\u653f\u5e9c\u62a5\u544a\u4e2d\u6307\u51fa\uff0c\u56fd\u5bb6\u5c06\u8fdb\u4e00\u6b65\u52a0\u5927\u5bf9\u201c\u4e09\u519c\u201d\u7684\u6295\u5165\u529b\u5ea6\u3002", de:"Der Ministerpr\u00e4sident **wies** in seinem Regierungsbericht **darauf hin**, dass der Staat die Investition in Landwirtschaft, l\u00e4ndliche Gegend und Bauern weiterhin verst\u00e4rken wird." },
+  { id:"l1_06", unit:"L1", tier:"must", zh:"\u901a\u8fc7\u653f\u5e9c\u8865\u8d34\u7279\u8272\u517b\u6b96\u4e1a\uff0c\u5207\u5b9e\u6709\u6548\u5730\u63d0\u9ad8\u519c\u6c11\u7684\u6536\u5165\u3002", de:"Das Einkommen der Bauern wird **dadurch** erh\u00f6ht, **dass** die Regierung den Bauern Subventionen f\u00fcr spezielle Aquakultur **zuteilt**." },
+  { id:"l1_07", unit:"L1", tier:"must", zh:"\u505a\u597d\u519c\u6c11\u7684\u6c11\u751f\u4fdd\u969c\uff0c\u5b8c\u5584\u519c\u6751\u57fa\u7840\u8bbe\u65bd\uff0c\u5efa\u597d\u5e7c\u513f\u56ed\u548c\u5b66\u6821\uff0c\u53d1\u5c55\u804c\u4e1a\u6559\u80b2\uff0c\u662f\u653f\u5e9c\u7684\u9996\u8981\u4efb\u52a1\u3002", de:"Das Gew\u00e4hrleisten der Sozialversicherung von Bauern, die Verbesserung der Infrastruktur auf dem Land, der Aufbau von Kinderg\u00e4rten und Grundschulen **sowie** die Entwicklung der Berufsbildung **sind** die dringendsten Aufgaben der Regierung." },
+  { id:"l1_08", unit:"L1", tier:"must", zh:"\u6211\u4eec\u5e7f\u5927\u7684\u519c\u6c11\u4e0d\u4ec5\u8981\u4eab\u53d7\u7269\u8d28\u4e0a\u7684\u5e78\u798f\uff0c\u66f4\u8981\u4eab\u53d7\u91d1\u94b1\u4ee5\u5916\u7684\u5e78\u798f\u3002", de:"Die Bauern sollen **nicht nur** materiellen Wohlstand genie\u00dfen, **sondern auch** ein erf\u00fclltes geistiges Leben haben." },
+  { id:"l1_09", unit:"L1", tier:"fall", zh:"\u5982\u4f55\u5728\u4fdd\u8bc1\u519c\u4ea7\u54c1\u6570\u91cf\u548c\u8d28\u91cf\u7684\u540c\u65f6\uff0c\u6700\u5927\u9650\u5ea6\u5730\u51cf\u5c11\u5bf9\u73af\u5883\u7684\u6c61\u67d3\uff0c\u4f7f\u519c\u4e1a\u8d70\u4e0a\u53ef\u6301\u7eed\u53d1\u5c55\u7684\u5065\u5eb7\u4e4b\u8def\uff1f", de:"Wie kann man die Umweltverschmutzung **auf das Minimum** reduzieren, **damit** sich die Agrarwirtschaft nachhaltig entwickelt, **ohne dass** die Quantit\u00e4t und Qualit\u00e4t der Agrarprodukte beeintr\u00e4chtigt werden?" },
+  { id:"l1_10", unit:"L1", tier:"fall", zh:"\u8fd9\u662f\u4eba\u7c7b\u9762\u4e34\u7684\u6700\u5927\u6311\u6218\u3002", de:"Das ist die gr\u00f6\u00dfte Herausforderung, **mit** der die Menschheit **konfrontiert ist**." },
+  { id:"l1_11", unit:"L1", tier:"fall", zh:"\u519c\u4e1a\u5927\u56fd\u5df4\u897f\u5728\u4f4e\u78b3\u519c\u4e1a\u65b9\u9762\u505a\u4e86\u5f88\u591a\u6709\u76ca\u7684\u5c1d\u8bd5\u3002", de:"Das gro\u00dfe Agrarland Brasilien hat bei der Landwirtschaft **mit niedrigem Kohlenstoffaussto\u00df** viele gute Versuche gemacht." },
+  { id:"l1_12", unit:"L1", tier:"fall", zh:"\u4e00\u4e9b\u519c\u5e84\u4e0d\u518d\u7528\u4f20\u7edf\u7684\u65b9\u5f0f\u8015\u4f5c\uff0c\u800c\u662f\u8ba9\u519c\u6797\u7267\u4e1a\u76f8\u7ed3\u5408\u3002", de:"Einige Bauernh\u00f6fe treiben den Ackerbau nicht nach der traditionellen Methode, **sondern** sie lassen die Landwirtschaft in die Forstwirtschaft und Tierhaltung **integrieren**." },
+  { id:"l1_13", unit:"L1", tier:"fall", zh:"\u519c\u6c11\u5728\u7267\u573a\u4e0a\u79cd\u6811\uff0c\u8ba9\u725b\u5728\u6811\u836b\u4e0b\u6210\u957f\u3002", de:"Die Bauern **bepflanzen** die Weiden **mit** B\u00e4umen und lassen die Rinder im Schatten der B\u00e4ume **aufwachsen**." },
+  { id:"l1_14", unit:"L1", tier:"fall", zh:"\u76ee\u524d\uff0c\u5df4\u897f\u62e5\u6709\u8d85\u8fc71\u4ebf\u516c\u9877\u7684\u7267\u573a\u3002", de:"Zurzeit **verf\u00fcgt** Brasilien **\u00fcber** mehr als 100 Millionen Hektar Weiden." },
+  { id:"l1_15", unit:"L1", tier:"fall", zh:"\u9972\u517b\u7684\u725b\u8fd12\u4ebf\u5934\uff0c\u5c45\u4e16\u754c\u7b2c\u4e8c\u4f4d\u3002", de:"Die Zahl der gez\u00fcchteten Rinder **liegt** mit knapp 200 Millionen **auf der zweiten Stelle** der Welt." },
+  { id:"l1_16", unit:"L1", tier:"fall", zh:"\u53bb\u5e74\u5df4\u897f\u51fa\u53e3\u4e86163\u4e07\u5428\u725b\u8089\uff0c\u7531\u6b64\u521b\u6c4753\u4ebf\u7f8e\u5143\u3002", de:"Letztes Jahr hat Brasilien 1,63 Millionen Tonnen Rindfleisch exportiert und **somit** 5,3 Milliarden US-Dollar **erwirtschaftet**." },
+  { id:"l1_17", unit:"L1", tier:"fall", zh:"\u7531\u6b64\u4ea7\u751f\u4e86\u4e0d\u9519\u7684\u793e\u4f1a\u6548\u76ca\u548c\u7ecf\u6d4e\u6548\u76ca\u3002", de:"Die Gesellschafts- und Wirtschaftseffekte **sind zufriedenstellend**." },
+  { id:"l1_18", unit:"L1", tier:"fall", zh:"\u725b\u8089\u51fa\u53e3\u91cf\u5c45\u4e16\u754c\u9996\u4f4d\u3002", de:"Das **exportierte** Rindfleischvolumen **steht** auf der Weltspitze." },
+
+  // ---------- L2 ----------
+  { id:"l2_01", unit:"L2", tier:"key", zh:"\u57282010\u5e74\u7684\u4e0a\u6d77\u4e16\u535a\u4f1a\u4e0a\uff0c\u7ea6240\u4e2a\u56fd\u5bb6\u53ca\u56fd\u9645\u7ec4\u7ec7\u4ee5\u4e30\u5bcc\u591a\u5f69\u7684\u6784\u60f3\u5c55\u793a\u4e86\u672a\u6765\u57ce\u5e02\u751f\u6d3b\u7684\u666f\u8c61\u3002", de:"Auf der Expo 2010 in Shanghai **stellten** rund 240 L\u00e4nder und internationale Organisationen mit ganz unterschiedlichen Konzepten zur Stadtentwicklung ihre Visionen f\u00fcr ein zuk\u00fcnftiges Stadtleben **vor**." },
+  { id:"l2_02", unit:"L2", tier:"key", zh:"\u57ce\u5e02\u7684\u53ef\u6301\u7eed\u53d1\u5c55\u662f\u8fd9\u4e00\u5c4a\u4e16\u535a\u4f1a\u7684\u6838\u5fc3\u4e3b\u9898\u3002", de:"Die nachhaltige Entwicklung der Stadt war das **Hauptthema** der Weltausstellung." },
+  { id:"l2_03", unit:"L2", tier:"key", zh:"\u5728\u5de5\u4e1a\u5316\u548c\u57ce\u5e02\u5316\u7684\u8fdb\u7a0b\u4e2d\uff0c\u57ce\u5e02\u4eba\u53e3\u6025\u5267\u589e\u957f\uff0c\u80fd\u6e90\u7684\u6d88\u8017\u4e0e\u9700\u6c42\u4e0e\u65e5\u4ff1\u589e\uff0c\u7531\u6b64\u5bf9\u73af\u5883\u9020\u6210\u4e86\u5de8\u5927\u7684\u8d1f\u62c5\u3002", de:"Mit der Industrialisierung und Urbanisierung w\u00e4chst die st\u00e4dtische Bev\u00f6lkerung drastisch **an**, der Energieverbrauch und -bedarf nimmt st\u00e4ndig **zu**, **was** erhebliche Umweltbelastungen **zur Folge hat**." },
+  { id:"l2_04", unit:"L2", tier:"key", zh:"\u56e0\u6b64\uff0c\u5982\u4f55\u5efa\u8bbe\u4f4e\u78b3\u57ce\u5e02\u3001\u8425\u9020\u7eff\u8272\u7684\u57ce\u5e02\u751f\u6d3b\uff0c\u5c31\u6210\u4e86\u5168\u4e16\u754c\u4eba\u4eec\u7684\u5173\u5207\u6240\u5728\u3002", de:"Angesichts dessen **schenkt** nun die ganze Welt der Frage, wie man kohlenstoffarme St\u00e4dte und ein gr\u00fcnes Stadtleben aufbaut, besondere **Aufmerksamkeit**." },
+  { id:"l2_05", unit:"L2", tier:"key", zh:"\u201c\u548c\u8c10\u4e4b\u57ce\u201d\u2014\u2014\u8fd9\u662f2010\u5e745\u67081\u65e5\u81f310\u670831\u65e5\u4e0a\u6d77\u4e16\u535a\u4f1a\u4e0a\u5c55\u793a\u7684\u5fb7\u56fd\u5c55\u9986\u4e3b\u9898\u3002", de:"\u201eBalancity\u201c **hei\u00dft** der Beitrag, **mit dem** sich Deutschland vom 1. Mai bis 31. Oktober 2010 auf der Weltausstellung in Shanghai **pr\u00e4sentiert**." },
+  { id:"l2_06", unit:"L2", tier:"key", zh:"\u5fb7\u56fd\u9986\u56f4\u7ed5\u4e16\u535a\u4f1a\u4e3b\u9898\u201c\u57ce\u5e02\u8ba9\u751f\u6d3b\u66f4\u7f8e\u597d\u201d\uff0c\u5f15\u9886\u4eba\u4eec\u7a7f\u884c\u4e8e\u4e00\u5ea7\u521b\u60f3\u4e4b\u57ce\u3002", de:"Passend zum Thema der Expo \u201eBetter City, Better Life\u201c **f\u00fchrt** der deutsche Pavillon **durch** eine Stadt der Ideen." },
+  { id:"l2_07", unit:"L2", tier:"key", zh:"\u8fd9\u5ea7\u57ce\u5e02\u8ffd\u6c42\u521b\u65b0\u4e0e\u4f20\u7edf\u3001\u57ce\u5e02\u4e0e\u81ea\u7136\u3001\u5de5\u4f5c\u4e0e\u4f11\u95f2\u7684\u548c\u8c10\u5171\u5b58\u3002", de:"Ihr Ziel: ein Gleichgewicht **zwischen** Innovation und Tradition, Stadt und Natur, Arbeit und Freizeit **zu schaffen**." },
+
+  // ---------- L3 ----------
+  { id:"l3_01", unit:"L3", tier:"key", zh:"2011\u5e743\u670811\u65e5\uff0c\u5168\u4e16\u754c\u89c1\u8bc1\u4e86\u7b2c\u4e8c\u6b21\u201c\u5207\u5c14\u8bfa\u8d1d\u5229\u4e8b\u6545\u201d\uff0c\u5bf9\u65e5\u672c\u6765\u8bf4\u5219\u76f8\u5f53\u4e8e\u4ed6\u4eec\u76849\u00b711\u4e8b\u4ef6\u3002", de:"Am 11. M\u00e4rz 2011 **erlebte** die Welt ein zweites Tschernobyl und Japan seinen eigenen 11. September." },
+  { id:"l3_02", unit:"L3", tier:"key", zh:"\u4e00\u573a\u7531\u6d77\u5578\u5f15\u8d77\u3001\u8d85\u8fc71.5\u4e07\u4eba\u4e27\u751f\u7684\u5730\u9707\uff0c\u5bfc\u81f4\u4e86\u65e5\u672c\u4e1c\u6d77\u5cb8\u798f\u5c9b\u6838\u7535\u7ad9\u4e00\u7cfb\u5217\u707e\u96be\u6027\u4e8b\u6545\uff0c\u9020\u6210\u591a\u4e2a\u53cd\u5e94\u5806\u5806\u82af\u7194\u6bc1\u53ca\u5927\u91cf\u653e\u5c04\u6027\u7269\u8d28\u6cc4\u6f0f\u3002", de:"Ein durch einen Tsunami **ausgel\u00f6stes** Erdbeben, bei dem mehr als 15 000 Menschen ums Leben kamen, **verursachte** im Kernkraftwerk Fukushima eine katastrophale Unfallserie, die zur Kernschmelze mehrerer Reaktoren **f\u00fchrte**." },
+  { id:"l3_03", unit:"L3", tier:"key", zh:"\u4e3a\u4e86\u4fdd\u8bc1\u53cd\u5e94\u5806\u5b89\u5168\u3001\u9632\u6b62\u707e\u96be\u6076\u5316\uff0c\u201c\u798f\u5c9b50\u6b7b\u58eb\u201d\u5192\u7740\u5f3a\u8f90\u5c04\u7684\u5371\u9669\uff0c\u62b1\u7740\u5fc5\u6b7b\u7684\u51b3\u5fc3\u56de\u5230\u4e8b\u6545\u53cd\u5e94\u5806\u3002", de:"**Um** die Reaktoren zu sichern und weitere Katastrophen zu verhindern, **wurden** die Fukushima 50, todgeweihte Arbeiter, **trotz** der gef\u00e4hrlichen Strahlung zur\u00fcck in den Ungl\u00fccksreaktor **geschickt**." },
+  { id:"l3_04", unit:"L3", tier:"key", zh:"\u6700\u7ec8\uff0c\u4eba\u4eec\u5728\u540c\u5e74\u7528\u4e00\u5ea7\u201c\u77f3\u68fa\u201d\u5c01\u5b58\u4e86\u798f\u5c9b\u7684\u4e8b\u6545\u53cd\u5e94\u5806\uff0c\u4ee5\u9632\u8f90\u5c04\u7269\u8d28\u7ee7\u7eed\u5916\u6cc4\u3002", de:"**Ebenso wie** in Tschernobyl **wurde** schlie\u00dflich ein Sarkophag um die havarierten Reaktoren **errichtet**, **um** den Austritt weiterer Strahlenmengen zu verhindern." },
+  { id:"l3_05", unit:"L3", tier:"key", zh:"\u5fb7\u56fd\u628a\u53ef\u518d\u751f\u80fd\u6e90\u89c6\u4f5c\u672a\u6765\u53ef\u9760\u3001\u53ef\u6301\u7eed\u7684\u80fd\u6e90\u6765\u6e90\u3002", de:"In erneuerbaren Energien **sieht** Deutschland die Zukunft einer sicheren und nachhaltigen Energieversorgung." },
+  { id:"l3_06", unit:"L3", tier:"key", zh:"\u8054\u90a6\u653f\u5e9c\u5df2\u51b3\u5b9a\u9000\u51fa\u6838\u80fd\uff0c\u6240\u6709\u6838\u7535\u7ad9\u90fd\u5c06\u4e8e2022\u5e74\u524d\u5173\u95ed\u3002", de:"Die Bundesregierung hat **beschlossen**, aus der Atomenergie **auszusteigen** und bis 2022 alle Atomkraftwerke **stillzulegen**." },
+  { id:"l3_07", unit:"L3", tier:"key", zh:"\u672a\u6765\u51e0\u5e74\uff0c\u4ec5\u5728\u5fb7\u56fd\u5317\u6d77\u548c\u6ce2\u7f57\u7684\u6d77\u6cbf\u5cb8\uff0c\u5c31\u5c06\u5efa\u7acb\u8d7740\u5ea7\u8fd1\u6d77\u98ce\u529b\u53d1\u7535\u573a\u3002", de:"**Allein** 40 Offshore-Windparks sollen in den n\u00e4chsten Jahren **vor der** deutschen Nord- und Ostseek\u00fcste **entstehen**." },
+  { id:"l3_08", unit:"L3", tier:"key", zh:"\u5fb7\u56fd\u662f\u98ce\u80fd\u4e16\u754c\u51a0\u519b\uff0c\u4e5f\u662f\u8fd9\u4e00\u53ef\u6301\u7eed\u80fd\u6e90\u6280\u672f\u9886\u57df\u5168\u7403\u5e7f\u53d7\u6b22\u8fce\u7684\u5408\u4f5c\u4f19\u4f34\u3002", de:"Deutschland ist Windenergie-Weltmeister und ein weltweit **gefragter** Kooperationspartner f\u00fcr diese nachhaltige Energie-Technologie." },
+  { id:"l3_09", unit:"L3", tier:"key", zh:"\u5728\u98ce\u80fd\u548c\u592a\u9633\u80fd\u9886\u57df\uff0c\u5fb7\u56fd\u5728\u6280\u672f\u4e0a\u4e5f\u5904\u4e8e\u9886\u5148\u5730\u4f4d\u3002", de:"Bei Wind- und Solarenergie **ist** Deutschland technologisch auch **f\u00fchrend**." },
+  { id:"l3_10", unit:"L3", tier:"key", zh:"\u5fb7\u56fd\u7684\u56fd\u6c11\u7ecf\u6d4e\u6b63\u9762\u4e34\u7740\u6df1\u523b\u7684\u53d8\u5316\u3002", de:"Die Volkswirtschaft Deutschlands **steht vor** einem tiefgreifenden Wandel." },
+  { id:"l3_17", unit:"L3", tier:"key", zh:"\u4e3b\u5bfc\u8fd9\u4e2a\u56fd\u5bb6\u5de5\u4e1a\u7684\uff0c\u4e0d\u518d\u662f\u6c7d\u8f66\u5de5\u4e1a\u3001\u5316\u5b66\u5de5\u4e1a\uff0c\u4e5f\u4e0d\u662f\u673a\u5668\u5236\u9020\u4e1a\u3002", de:"Nicht mehr Autos, nicht die Chemie, auch nicht der Maschinenbau." },
+  { id:"l3_11", unit:"L3", tier:"key", zh:"\u4eca\u540e\uff0c\u4e3b\u5bfc\u8fd9\u4e2a\u56fd\u5bb6\u5de5\u4e1a\u7684\u662f\u7eff\u8272\u6280\u672f\u3002", de:"Die gr\u00fcne Hightech wird das Land **pr\u00e4gen**." },
+  { id:"l3_12", unit:"L3", tier:"key", zh:"\u5b83\u5c06\u521b\u9020\u5c31\u4e1a\u673a\u4f1a\uff0c\u7ed9\u6c11\u4f17\u5e26\u6765\u798f\u7949\u3002", de:"Sie wird Jobs und Wohlstand **schaffen**." },
+  { id:"l3_13", unit:"L3", tier:"fall", zh:"\u52302020\u5e74\uff0c\u5fb7\u56fd\u56fd\u5185\u751f\u4ea7\u603b\u503c\u768414%\u5c06\u6765\u81ea\u8fd9\u4e00\u65b0\u5174\u4ea7\u4e1a\u3002", de:"Im Jahre 2020 werden **14 Prozent** des deutschen Bruttoinlandsprodukts **auf das Konto** der neuen Boombranche **gehen**." },
+  { id:"l3_14", unit:"L3", tier:"fall", zh:"220\u4e07\u4eba\u5c06\u5728\u8be5\u884c\u4e1a\u4e2d\u627e\u5230\u4ed6\u4eec\u7684\u5de5\u4f5c\u3002", de:"**2,2 Millionen** werden dort ihre Arbeit finden." },
+  { id:"l3_15", unit:"L3", tier:"key", zh:"\u76ee\u524d\uff0c\u201c\u5fb7\u56fd\u5236\u9020\u201d\u7684\u7eff\u8272\u6280\u672f\u8d70\u5728\u4e16\u754c\u524d\u5217\u3002", de:"Im Moment **spielt** die gr\u00fcne Technik \u201eMade in Germany\u201c in der Welt vorne **mit**." },
+  { id:"l3_16", unit:"L3", tier:"key", zh:"\u5c3d\u7ba1\u7f8e\u56fd\u548c\u4e2d\u56fd\u5728\u594b\u8d77\u76f4\u8ffd\uff0c\u4f46\u5fb7\u56fd\u5c06\u80fd\u4fdd\u6301\u5b83\u7684\u7ade\u4e89\u4f18\u52bf\u3002", de:"Amerika und China **holen** zwar **auf**, aber Deutschland wird seine Wettbewerbsposition **halten k\u00f6nnen**." },
+
+  // ---------- L4 ----------
+  { id:"l4_01", unit:"L4", tier:"key", zh:"\u5fb7\u56fd\u4eba\u559c\u6b22\u65c5\u884c\u3002", de:"Die Deutschen reisen gern." },
+  { id:"l4_02", unit:"L4", tier:"key", zh:"\u4ed6\u4eec\u5c24\u5176\u559c\u6b22\u9633\u5149\u3001\u6d77\u6c34\u548c\u6c99\u6ee9\u3002", de:"Sie lieben insbesondere Sonne, Meer und Sand." },
+  { id:"l4_03", unit:"L4", tier:"key", zh:"\u6bcf\u5e74\uff0c\u6210\u767e\u4e0a\u5343\u4e07\u7684\u5fb7\u56fd\u4eba\u524d\u5f80\u4e16\u754c\u5404\u5730\u7684\u6d77\u6ee9\u5ea6\u5047\u3002", de:"J\u00e4hrlich **zieht es** Millionen Deutsche **an die Str\u00e4nde** dieser Welt." },
+  { id:"l4_04", unit:"L4", tier:"key", zh:"\u5982\u4eca\uff0c\u8d8a\u6765\u8d8a\u591a\u7684\u5fb7\u56fd\u4eba\u610f\u8bc6\u5230\uff0c\u5ea6\u5047\u8005\u5728\u6c99\u6ee9\u4e0a\u7559\u4e0b\u811a\u5370\u7684\u540c\u65f6\uff0c\u4e5f\u5728\u7a7a\u6c14\u4e2d\u7559\u4e0b\u4e86\u65e0\u5f62\u7684\u8db3\u8ff9\u3002", de:"Mittlerweile **sind sich** immer mehr Deutsche **dessen bewusst**, **dass** die Urlauber nicht nur Spuren im Sand, sondern auch unsichtbare Fu\u00dfabdr\u00fccke in der Luft **hinterlassen**." },
+  { id:"l4_05", unit:"L4", tier:"key", zh:"\u8fd9\u5c31\u662f\u6240\u8c13\u65c5\u6e38\u7684\u201c\u6c14\u5019\u8db3\u8ff9\u201d\u6216\u201c\u4e8c\u6c27\u5316\u78b3\u8db3\u8ff9\u201d\u3002", de:"Und das ist der so genannte touristische Klima-Fu\u00dfabdruck **bzw.** CO2-Fu\u00dfabdruck." },
+  { id:"l4_06", unit:"L4", tier:"key", zh:"\u8fd9\u4e00\u6982\u5ff5\u610f\u6307\u7531\u65c5\u6e38\u884c\u4e3a\u6240\u9020\u6210\u7684\u6e29\u5ba4\u6c14\u4f53\u6392\u653e\uff0c\u4ee5\u53ca\u7531\u6b64\u5bf9\u6c14\u5019\u53d8\u5316\u4ea7\u751f\u7684\u5f71\u54cd\u3002", de:"Dieser Begriff **bezieht sich auf** die durch Reisen **verursachten** Treibhausgasemissionen und damit auf die Auswirkungen des Tourismus auf den Klimawandel." },
+  { id:"l4_07", unit:"L4", tier:"key", zh:"\u5b83\u65e8\u5728\u63d0\u5021\u7eff\u8272\u3001\u8282\u80fd\u3001\u73af\u4fdd\u7684\u5ea6\u5047\u7406\u5ff5\uff0c\u4fc3\u8fdb\u65c5\u6e38\u4e1a\u7684\u53ef\u6301\u7eed\u53d1\u5c55\u3002", de:"**Abgezielt wird** hierbei auf eine Urlaubsphilosophie von gr\u00fcnen, energiesparenden und umweltschonenden Reisen und auf eine nachhaltige Entwicklung des Tourismus." },
+  { id:"l4_08", unit:"L4", tier:"key", zh:"\u5fb7\u56fd\u65e2\u662f\u4e00\u4e2a\u7231\u597d\u65c5\u6e38\u7684\u56fd\u5ea6\uff0c\u53c8\u662f\u4e00\u4e2a\u5907\u53d7\u6e38\u5ba2\u9752\u7750\u7684\u65c5\u884c\u76ee\u7684\u5730\u3002", de:"Deutschland ist **sowohl** eine reisefreudige Nation **als auch** ein beliebtes Reiseziel." },
+  { id:"l4_09", unit:"L4", tier:"key", zh:"\u5fb7\u56fd\u4eba\u63a8\u5d07\u201c\u751f\u6001\u65c5\u6e38\u201d\uff0c\u5373\u8ffd\u6c42\u65c5\u6e38\u4e1a\u4e0e\u81ea\u7136\u7684\u548c\u8c10\u53d1\u5c55\u4ee5\u53ca\u5bf9\u8d44\u6e90\u7684\u9ad8\u6548\u5229\u7528\u3002", de:"Die Deutschen **bef\u00fcrworten** den \u201e\u00f6kologischen Tourismus\u201c, also einen Tourismus im Einklang mit Natur und Landschaft, und **setzen auf** einen effizienten Umgang mit den Ressourcen." },
+  { id:"l4_10", unit:"L4", tier:"key", zh:"\u4ed6\u4eec\u8bb2\u7a76\u65c5\u6e38\u4ea7\u54c1\u7684\u54c1\u8d28\uff0c\u5728\u4ed6\u4eec\u770b\u6765\uff0c\u7eff\u8272\u7684\u65c5\u884c\u624d\u662f\u771f\u6b63\u9ad8\u54c1\u8d28\u7684\u65c5\u884c\u3002", de:"Hohe Qualit\u00e4tsanspr\u00fcche haben sie **an** die touristischen Produkte, und f\u00fcr sie sind nur gr\u00fcne Reisen von richtig hoher Qualit\u00e4t." },
+  { id:"l4_11", unit:"L4", tier:"key", zh:"\u83b1\u6bd4\u9521\u4f4d\u4e8e\u8428\u514b\u68ee\u5dde\uff0c\u662f\u5fb7\u56fd\u4e1c\u90e8\u7684\u4e00\u5927\u4ea4\u901a\u67a2\u7ebd\u3001\u7ecf\u8d38\u4e2d\u5fc3\u53ca\u6587\u5316\u91cd\u9547\u3002", de:"Leipzig liegt im Bundesland Sachsen und **bildet** einen Verkehrsknotenpunkt **sowie** ein Zentrum f\u00fcr Wirtschaft, Handel und Kultur in Ostdeutschland." },
+  { id:"l4_12", unit:"L4", tier:"key", zh:"\u83b1\u6bd4\u9521\u6709\u957f\u8fbe\u6570\u767e\u5e74\u7684\u535a\u89c8\u4f1a\u4f20\u7edf\u3002", de:"Die Stadt hat eine **jahrhundertelange** Tradition als bedeutender Messestandort." },
+  { id:"l4_13", unit:"L4", tier:"key", zh:"\u8fd9\u91cc\u8fd8\u6709\u5fb7\u56fd\u6700\u53e4\u8001\u7684\u9ad8\u7b49\u5b66\u5e9c\u4e4b\u4e00\u2014\u2014\u83b1\u6bd4\u9521\u5927\u5b66\u3002", de:"Hier befindet sich noch **eine der** \u00e4ltesten Universit\u00e4ten Deutschlands \u2013 die Universit\u00e4t Leipzig." },
+  { id:"l4_14", unit:"L4", tier:"key", zh:"\u83b1\u6bd4\u9521\u8fd8\u662f\u4e00\u4e2a\u201c\u6c34\u57ce\u201d\uff0c\u4f4d\u4e8e\u4e09\u6cb3\u7684\u4ea4\u6c47\u5730\u5e26\u3002", de:"Au\u00dferdem ist Leipzig eine Stadt am Wasser, die **am Zusammenfluss** von Wei\u00dfer Elster, Plei\u00dfe und Parthe liegt." },
+  { id:"l4_15", unit:"L4", tier:"key", zh:"\u6cbf\u6cb3\u6d41\u57df\u5927\u9762\u79ef\u7684\u6e7f\u5730\u690d\u88ab\u7a7f\u57ce\u800c\u8fc7\u3002", de:"Ausgedehnte Auwaldgebiete entlang den Fl\u00fcssen **ziehen sich durch** die Stadt." },
+  { id:"l4_16", unit:"L4", tier:"key", zh:"\u8fd9\u4e00\u6cb3\u6c34\u3001\u6e7f\u5730\u6797\u6728\u4e0e\u57ce\u5e02\u7d27\u5bc6\u4ea4\u878d\u7684\u5730\u8c8c\uff0c\u4f7f\u83b1\u6bd4\u9521\u5728\u5fb7\u56fd\u57ce\u5e02\u4e2d\u72ec\u5177\u4e00\u683c\u3002", de:"Die enge Verkn\u00fcpfung zwischen Wasser, Auwald und Stadt **verleiht** der Stadt Leipzig eine einzigartige Alleinstellung **unter** deutschen St\u00e4dten." },
+  { id:"l4_17", unit:"L4", tier:"key", zh:"\u5728\u539f\u6c11\u4e3b\u5fb7\u56fd\u65f6\u671f\uff0c\u83b1\u6bd4\u9521\u4f5c\u4e3a\u5f00\u91c7\u8910\u7164\u7684\u5de5\u4e1a\u91cd\u5730\uff0c\u5176\u81ea\u7136\u73af\u5883\u906d\u53d7\u4e86\u4e25\u91cd\u7834\u574f\u3002", de:"W\u00e4hrend der DDR-Zeit **wurde** die Umwelt von Leipzig, dem Standort f\u00fcr Braunkohletagebau, stark **zerst\u00f6rt**." },
+  { id:"l4_18", unit:"L4", tier:"key", zh:"\u8910\u7164\u52a0\u5de5\u7684\u5de5\u4e1a\u5e9f\u6c34\u6c61\u67d3\u4e86\u6cb3\u9053\uff0c\u90e8\u5206\u6e7f\u5730\u690d\u88ab\u88ab\u6bc1\u3002", de:"Industrieabw\u00e4sser aus der Braunkohleverarbeitung **verschmutzten** die Fl\u00fcsse, und Teile des Auwaldes **wurden zerst\u00f6rt**." },
+  { id:"l4_19", unit:"L4", tier:"key", zh:"\u539f\u5148\u7684\u201c\u6c34\u57ce\u201d\u9762\u76ee\u5168\u975e\u3002", de:"Leipzig **verlor** seinen urspr\u00fcnglichen Charakter als Wasserstadt." },
+  { id:"l4_20", unit:"L4", tier:"key", zh:"\u4e24\u5fb7\u7edf\u4e00\u540e\uff0c\u83b1\u6bd4\u9521\u57ce\u7684\u9762\u8c8c\u53d1\u751f\u4e86\u5f88\u5927\u7684\u53d8\u5316\u3002", de:"Nach der Wende haben **sich** gro\u00dfe Ver\u00e4nderungen im Stadtbild Leipzigs **vollzogen**." },
+  { id:"l4_21", unit:"L4", tier:"key", zh:"90\u5e74\u4ee3\u521d\u671f\uff0c\u83b1\u6bd4\u9521\u7ed3\u675f\u4e86\u8910\u7164\u5f00\u91c7\u7684\u5386\u53f2\uff0c\u5f00\u59cb\u6574\u6cbb\u73af\u5883\u3002", de:"Anfang der 1990er Jahre **wurde** der Braunkohleabbau gestoppt und es **wurde mit** der Sanierung des Umfeldes **begonnen**." },
+  { id:"l4_22", unit:"L4", tier:"key", zh:"\u6cb3\u9053\u5f97\u4ee5\u758f\u901a\uff0c\u6c61\u6c34\u5f97\u5230\u6cbb\u7406\u3002", de:"Die Flussl\u00e4ufe **wurden** wieder **freigelegt**, das Schmutzwasser **wurde gereinigt**." },
+  { id:"l4_23", unit:"L4", tier:"key", zh:"\u90e8\u5206\u9057\u7559\u7684\u77ff\u5751\u88ab\u6539\u9020\u6210\u6e56\u6cca\uff0c\u5f97\u5230\u5f88\u597d\u7684\u5f00\u53d1\uff0c\u6210\u4e86\u4eba\u4eec\u4f11\u95f2\u7684\u597d\u53bb\u5904\u3002", de:"Die Tagebaurestl\u00f6cher **verwandelten sich** teilweise in Seen und wurden zu gut erschlossenen Erholungsgebieten." },
+  { id:"l4_24", unit:"L4", tier:"key", zh:"\u5982\u4eca\uff0c\u201c\u6c34\u57ce\u201d\u83b1\u6bd4\u9521\u53c8\u6062\u590d\u4e86\u751f\u673a\u3002", de:"Die Wasserstadt Leipzig **wird** heute **wiederbelebt**." },
+
+  // ---------- L5 ----------
+  { id:"l5_01", unit:"L5", tier:"key", zh:"\u6d77\u56e0\u5728\u300a\u5bb6\u65cf\u5893\u5ba4\u300b\u4e00\u6587\u4e2d\u8bb0\u8ff0\u4e86\u5965\u6839\u53d4\u53d4\u4e00\u5bb6\u4e3a\u8eb2\u907f\u7eb3\u7cb9\u8feb\u5bb3\u800c\u85cf\u8eab\u5893\u7a74\uff0c\u6700\u7ec8\u5374\u88ab\u76d6\u4e16\u592a\u4fdd\u53d1\u73b0\u5e76\u6298\u78e8\u81f4\u6b7b\u7684\u60b2\u5267\u3002", de:"In seinem Bericht \u00fcber \u201eDie Familiengruft\u201c **erz\u00e4hlt** Christoph Hein, **wie** sich Onkel Eugen und die Seinigen in einer Gruft versteckten, **um** sich vor der Verfolgung durch die Nazis zu sch\u00fctzen, schlie\u00dflich aber durch die Gestapoleute zu Tode **gequ\u00e4lt wurden**, **als** diese das Versteck entdeckten." },
+  { id:"l5_02", unit:"L5", tier:"key", zh:"\u4e0e\u4e16\u9694\u7edd\u7684\u5893\u5ba4\u975e\u4f46\u6ca1\u80fd\u6210\u4e3a\u751f\u8005\u7684\u907f\u96be\u6240\uff0c\u53cd\u800c\u6210\u4e86\u4ed6\u4eec\u7684\u846c\u8eab\u4e4b\u5730\u3002", de:"**Statt** den Lebenden Zuflucht zu bieten, **wurde** die abgeschiedene Gruft deren Sterbeort." },
+  { id:"l5_03", unit:"L5", tier:"key", zh:"\u300a\u6211\u7684\u6751\u5b50\u300b\u4e2d\u591a\u6b21\u63d0\u53ca\u7684\u3001\u4f5c\u8005\u81ea\u5b69\u63d0\u65f6\u4ee3\u8d77\u5c31\u719f\u6089\u7684\u5893\u5730\uff0c\u4e0e\u5965\u6839\u53d4\u53d4\u4e00\u5bb6\u85cf\u8eab\u7684\u5893\u7a74\u6709\u660e\u663e\u7684\u76f8\u4f3c\u4e4b\u5904\u3002", de:"Der Hof der Toten in \u201eMeinem Dorf\u201c, der wiederholt erw\u00e4hnt wird und **dem** Autor seit seiner Kindheit **vertraut ist**, ist offensichtlich **mit** der Gruft **vergleichbar**, die der Familie als Versteck diente." },
+  { id:"l5_04", unit:"L5", tier:"key", zh:"\u56e0\u4e3a\u4e24\u8005\u90fd\u8c61\u5f81\u7740\u751f\u4e0e\u6b7b\u7684\u754c\u9650\uff0c\u9ed8\u9ed8\u5730\u89c1\u8bc1\u4e86\u6218\u4e89\u4e0e\u707e\u96be\u3002", de:"**Weil** beides die Grenze **zwischen** Leben und Tod **versinnbildlicht** und als stillschweigender **Zeuge** des Krieges und der Katastrophe da liegt." },
+  { id:"l5_05", unit:"L5", tier:"key", zh:"\u65bd\u7279\u91cc\u7279\u9a6c\u7279\u5c14\u5728\u5176\u81ea\u4f20\u6027\u6563\u6587\u300a\u6211\u7684\u6751\u5b50\u300b\u4e2d\u8ffd\u5fc6\u4e86\u81ea\u5df1\u5728\u4e61\u6751\u5ea6\u8fc7\u7684\u591a\u59ff\u591a\u5f69\u7684\u7ae5\u5e74\u3002", de:"In seinem autobiographischen Prosast\u00fcck \u201eMein Dorf\u201c **erinnerte sich** Erwin Strittmatter **an** seine bunte Kindheit auf dem Land." },
+  { id:"l5_06", unit:"L5", tier:"key", zh:"\u5c0f\u7537\u5b69\u5728\u7530\u95f4\u5730\u5934\u73a9\u82b1\u5f04\u8349\u3001\u6349\u866b\u5b09\u95f9\u3002", de:"Der kleine Junge spielte auf Feldern und an Ackerrainen und **ging mit** Blumen, Gr\u00e4sern und Insekten **um**." },
+  { id:"l5_07", unit:"L5", tier:"key", zh:"\u8fd9\u4f7f\u6211\u4eec\u4e0d\u7981\u8054\u60f3\u5230\u9c81\u8fc5\u8bb0\u8ff0\u81ea\u5df1\u7ae5\u5e74\u751f\u6d3b\u7684\u6563\u6587\u540d\u7bc7\u300a\u4ece\u767e\u8349\u56ed\u5230\u4e09\u5473\u4e66\u5c4b\u300b\u3002", de:"Hierbei **denkt man** leicht **an** Lu Xuns bekanntes Prosawerk, **in dem** es ebenfalls um die Kindheit des Schriftstellers geht." },
+  { id:"l5_08", unit:"L5", tier:"key", zh:"\u7684\u786e\uff0c\u7ae5\u5fc3\u4e16\u754c\u603b\u662f\u90a3\u4e48\u5999\u8da3\u6a2a\u751f\uff01", de:"Ja, die Welt der Kinder **steckt** eben immer **voller** Wunder!" },
+
+  // ---------- L6 ----------
+  { id:"l6_01", unit:"L6", tier:"key", zh:"\u6545\u4e8b\u7684\u5973\u4e3b\u4eba\u516c\u662f\u4e00\u4f4d\u5be1\u5987\uff0c\u72ec\u81ea\u629a\u517b\u4e5d\u5c81\u7684\u513f\u5b50\u9c81\u9053\u592b\uff0c\u8fd9\u7740\u5b9e\u4e0d\u6613\u3002", de:"Die Ich-Erz\u00e4hlerin der Geschichte ist eine Witwe und **zieht** allein ihren neunj\u00e4hrigen Sohn Rudolf **auf**, was tats\u00e4chlich nicht leicht ist." },
+  { id:"l6_02", unit:"L6", tier:"key", zh:"\u7136\u800c\u7978\u4e0d\u5355\u884c\u3002", de:"Aber ein Ungl\u00fcck **kommt** selten allein." },
+  { id:"l6_03", unit:"L6", tier:"key", zh:"\u66f4\u4e0d\u5e78\u7684\u662f\uff0c\u5979\u7684\u5c0f\u513f\u5b50\u4e0d\u4e45\u524d\u8fd8\u5931\u660e\u4e86\u3002", de:"Zu allem Ungl\u00fcck ist ihr kleiner Sohn vor kurzem auch noch blind **geworden**." },
+  { id:"l6_04", unit:"L6", tier:"key", zh:"\u6bcd\u4eb2\u6df1\u53d7\u8fd9\u4e00\u6c89\u91cd\u6253\u51fb\u7684\u6298\u78e8\uff0c\u77ed\u65f6\u95f4\u5185\u65e0\u6cd5\u63a5\u53d7\u6b8b\u9177\u7684\u73b0\u5b9e\u3002", de:"Die Mutter **leidet** sehr **unter** dem schweren Schicksalsschlag und kann innerhalb kurzer Zeit die harte Realit\u00e4t nicht **akzeptieren**." },
+  { id:"l6_05", unit:"L6", tier:"key", zh:"\u5979\u4e5f\u9f13\u4e0d\u8d77\u52c7\u6c14\u5411\u6765\u63a2\u671b\u5979\u7684\u670b\u53cb\u503e\u8bc9\uff0c\u4ee5\u83b7\u5f97\u5b89\u6170\u548c\u5e2e\u52a9\uff0c\u56e0\u4e3a\u5979\u5bb3\u6015\u522b\u4eba\u7684\u540c\u60c5\u3002", de:"Sie konnte auch nicht den Mut **aufbringen**, sich der Freundin **anzuvertrauen**, **um** Trost und Hilfe zu bekommen, **da** sie das Mitleid der anderen bef\u00fcrchtete." },
+  { id:"l6_06", unit:"L6", tier:"key", zh:"\u4f46\u670b\u53cb\u79bb\u5f00\u540e\uff0c\u8fd9\u4f4d\u5973\u4e3b\u4eba\u516c\u5c06\u5982\u4f55\u72ec\u81ea\u9762\u5bf9\u5931\u660e\u7684\u513f\u5b50\u548c\u90a3\u6697\u6de1\u7684\u751f\u6d3b\u5462\uff1f", de:"Aber wie wird sich das weibliche Ich nach der Abreise der Freundin allein dem blinden Sohn und dem trostlosen Leben **zuwenden**?" },
+  { id:"l6_07", unit:"L6", tier:"key", zh:"\u5bf9\u4e8e\u4e00\u5ea7\u5ea7\u964c\u751f\u7684\u57ce\u5e02\uff0c\u4e0d\u540c\u7684\u4eba\u6709\u7740\u4e0d\u540c\u7684\u6e38\u5386\u65b9\u5f0f\u3002", de:"Die Art und Weise, **wie** man fremde St\u00e4dte erlebt, **unterscheidet sich** von Person zu Person." },
+  { id:"l6_08", unit:"L6", tier:"key", zh:"\u80af\u5b9a\u6709\u4e0d\u5c11\u4eba\u80fd\u6e05\u695a\u5730\u8bb0\u5f97\u81ea\u5df1\u5728\u964c\u751f\u57ce\u5e02\u6700\u521d\u7684\u65e5\u5b50\uff0c\u751a\u81f3\u5728\u6545\u5730\u91cd\u6e38\u65f6\u8fd8\u80fd\u91cd\u6e29\u5f53\u521d\u7684\u611f\u53d7\u3002", de:"Trotzdem gibt es sicher nicht wenige, die sich an ihre ersten Tage in den fremden St\u00e4dten deutlich **erinnern k\u00f6nnen** und sich ihre anf\u00e4nglichen Erlebnisse auf pers\u00f6nliche Weise **widerfahren lassen**, wenn sie sp\u00e4ter wieder in diesen St\u00e4dten sind." },
+  { id:"l6_09", unit:"L6", tier:"key", zh:"\u8fd9\u6837\uff0c\u964c\u751f\u57ce\u5e02\u7684\u7b2c\u4e00\u5370\u8c61\u5c31\u6df1\u6df1\u5730\u94ed\u523b\u4e0b\u6765\uff0c\u867d\u7136\u77ed\u6682\uff0c\u5374\u957f\u4e45\u3002", de:"So **pr\u00e4gen sich** die ersten Eindr\u00fccke von den fremden St\u00e4dten tief **ein**, zwar fl\u00fcchtig, doch nachhaltig." },
+  { id:"l6_10", unit:"L6", tier:"key", zh:"\u5fb7\u56fd\u662f\u6b27\u6d32\u7684\u798f\u5229\u56fd\u5bb6\u3002", de:"Deutschland ist ein **Wohlfahrtsstaat** in Europa." },
+  { id:"l6_11", unit:"L6", tier:"key", zh:"\u5987\u5973\u5728\u5fb7\u56fd\u751f\u517b\u5b69\u5b50\uff0c\u8fd8\u80fd\u4ece\u56fd\u5bb6\u83b7\u5f97\u591a\u79cd\u793e\u4f1a\u798f\u5229\u3002", de:"**Wenn** deutsche Frauen Kinder **zur Welt bringen** und sie gro\u00df **aufziehen**, k\u00f6nnen sie vom Staat verschiedene Sozialhilfe **bekommen**." },
+  { id:"l6_12", unit:"L6", tier:"key", zh:"\u5fb7\u56fd\u7236\u6bcd\u5728\u5b69\u5b50\u51fa\u751f\u540e\u53ef\u4ee5\u9886\u53d6\u201c\u513f\u7ae5\u91d1\u201d\u3002", de:"**Nach** der Geburt des Kindes k\u00f6nnen deutsche Eltern Kindergeld **beziehen**." },
+  { id:"l6_13", unit:"L6", tier:"key", zh:"\u7b2c\u4e00\u3001\u4e8c\u4e2a\u5b69\u5b50\uff0c\u7236\u6bcd\u6bcf\u6708\u5404\u5f97184\u6b27\u3002", de:"**F\u00fcr** das erste sowie zweite Kind bekommen die Eltern monatlich **jeweils** 184 Euro pro Kind." },
+  { id:"l6_14", unit:"L6", tier:"key", zh:"\u7b2c\u4e09\u4e2a\u5b69\u5b50\u6bcf\u6708190\u6b27\uff0c\u7b2c\u56db\u4e2a\u53ca\u4ee5\u540e\u7684\u5b69\u5b50\u6bcf\u6708215\u6b27\u3002", de:"F\u00fcr das dritte Kind und das vierte bzw. weitere Kind kriegen die Eltern **jeweils 190 und 215 Euro** pro Monat." },
+  { id:"l6_15", unit:"L6", tier:"key", zh:"\u513f\u7ae5\u91d1\u53ef\u4ee5\u4e00\u76f4\u9886\u53d6\u5230\u5b69\u5b50\u5e74\u6ee118\u5c81\u3002", de:"Das Kindergeld ist bis zum 18. Lebensjahr des Kindes **zu beziehen**." },
+  { id:"l6_16", unit:"L6", tier:"key", zh:"\u9664\u4e86\u513f\u7ae5\u91d1\uff0c\u4e0d\u5de5\u4f5c\u6216\u6bcf\u5468\u5de5\u4f5c\u4e0d\u8d85\u8fc730\u5c0f\u65f6\u7684\u7236\u6bcd\uff0c\u8fd8\u53ef\u4ee5\u9886\u53d6\u201c\u7236\u6bcd\u91d1\u201d\u3002", de:"**Neben** dem Kindergeld k\u00f6nnen die nicht arbeitenden oder nicht l\u00e4nger als 30 Stunden in der Woche **arbeitenden** Eltern Elterngeld **bekommen**." },
+  { id:"l6_17", unit:"L6", tier:"key", zh:"\u90a3\u4e9b\u56e0\u4f11\u4ea7\u5047\u800c\u65e0\u6cd5\u5de5\u4f5c\u7684\u6bcd\u4eb2\uff0c\u53ef\u4ee5\u62ff\u5230\u4ea7\u524d\u5de5\u8d44\u7684\u7ea667%\u3002", de:"M\u00fctter, die **wegen** der Mutterschaft nicht arbeitsf\u00e4hig **sind**, k\u00f6nnen **etwa 67%** ihres Einkommens vor der Mutterschaft **erhalten**." },
+  { id:"l6_18", unit:"L6", tier:"key", zh:"\u4ea7\u524d\u5c31\u4e0d\u5de5\u4f5c\u7684\u6bcd\u4eb2\uff0c\u80fd\u5f97\u5230\u6bcf\u6708\u81f3\u5c11300\u6b27\u7684\u8865\u52a9\u3002", de:"Diejenigen, die vor der Geburt ihres Kindes nicht arbeiten, k\u00f6nnen **mindestens 300 Euro** pro Monat bekommen." },
+  { id:"l6_19", unit:"L6", tier:"key", zh:"\u4f46\u7236\u6bcd\u91d1\u53ea\u80fd\u9886\u53d612\u4e2a\u6708\u3002", de:"Aber man kann Elterngeld nur **f\u00fcr 12 Monate** erhalten." },
+  { id:"l6_20", unit:"L6", tier:"key", zh:"\u5982\u679c\u7236\u6bcd\u53cc\u65b9\u90fd\u4e0d\u5de5\u4f5c\uff0c\u5219\u53ef\u4ee5\u9886\u523014\u4e2a\u6708\u7684\u7236\u6bcd\u91d1\u3002", de:"**Wenn** beide Elternteile nicht arbeiten, k\u00f6nnen sie 14 Monate Elterngeld **beantragen**." },
+  { id:"l6_21", unit:"L6", tier:"key", zh:"\u53ef\u662f\u5373\u4fbf\u6709\u8fd9\u4e48\u591a\u4f18\u539a\u7684\u5f85\u9047\uff0c\u5fb7\u56fd\u4eba\u8fd8\u662f\u4e0d\u613f\u610f\u751f\u5b69\u5b50\u3002", de:"Aber **trotz** so vieler g\u00fcnstiger Sozialhilfe wollen die Deutschen nicht gern Kinder haben." },
+  { id:"l6_22", unit:"L6", tier:"key", zh:"\u636e\u7edf\u8ba1\uff0c\u5fb7\u56fd\u7684\u51fa\u751f\u7387\u5728\u6b27\u76df\u6700\u4f4e\u3002", de:"Der Statistik **zufolge** hat Deutschland die niedrigste Geburtenrate in der Europ\u00e4ischen Union." },
+  { id:"l6_23", unit:"L6", tier:"key", zh:"\u5fb7\u56fd\u4eba\u53e3\u6b63\u9762\u4e34\u5feb\u901f\u51cf\u5c11\u7684\u5371\u9669\u3002", de:"Die deutsche Bev\u00f6lkerungszahl **droht** sich rapid **zu verringern**." },
+  { id:"l6_24", unit:"L6", tier:"key", zh:"\u4e2d\u56fd\u5987\u8054\u5173\u4e8e\u5987\u5973\u793e\u4f1a\u5730\u4f4d\u7684\u8c03\u67e5\u8868\u660e\uff0c\u4e2d\u56fd\u5987\u5973\u7684\u793e\u4f1a\u5730\u4f4d\u65e5\u76ca\u63d0\u9ad8\u3002", de:"Die Untersuchung des Allchinesischen Frauenbunds zur gesellschaftlichen Stellung der chinesischen Frauen hat **gezeigt**, **dass** sich die soziale Stellung der chinesischen Frauen st\u00e4ndig **verbessert**." },
+  { id:"l6_25", unit:"L6", tier:"key", zh:"\u5987\u5973\u7684\u53d7\u6559\u80b2\u6c34\u5e73\u4e5f\u4e0d\u65ad\u63d0\u5347\u3002", de:"Das Bildungsniveau der chinesischen Frauen **erh\u00f6ht sich** stets." },
+  { id:"l6_26", unit:"L6", tier:"key", zh:"\u5973\u6027\u5e73\u5747\u53d7\u6559\u80b2\u5e74\u9650\u5728\u8fc7\u53bb\u5341\u5e74\u95f4\u63d0\u9ad8\u4e86\u6574\u6574\u4e24\u5e74\u3002", de:"In den letzten zehn Jahren hat **sich** die Bildungsdauer der Chinesinnen **um zwei Jahre verl\u00e4ngert**." },
+  { id:"l6_27", unit:"L6", tier:"key", zh:"\u8d8a\u6765\u8d8a\u591a\u7684\u5973\u6027\u8fdb\u5165\u8ba1\u7b97\u673a\u3001\u901a\u4fe1\u3001\u91d1\u878d\u3001\u4fdd\u9669\u7b49\u9ad8\u65b0\u6280\u672f\u884c\u4e1a\u3002", de:"Immer mehr Frauen **treten** in die hochtechnische Branche wie Computer, Kommunikation, Finanz und Versicherung **ein**." },
+  { id:"l6_28", unit:"L6", tier:"key", zh:"\u5979\u4eec\u6210\u4e3a\u8fd9\u4e9b\u884c\u4e1a\u53d1\u5c55\u7684\u4e3b\u8981\u529b\u91cf\u3002", de:"Sie **sind** wichtige Fachkr\u00e4fte der Branche **geworden**." },
+  { id:"l6_29", unit:"L6", tier:"key", zh:"\u5987\u5973\u521b\u4e1a\u7684\u80fd\u529b\u4e5f\u65e5\u76ca\u589e\u5f3a\u3002", de:"Die F\u00e4higkeit der Frauen, ein Unternehmen **zu gr\u00fcnden**, **entwickelt sich** auch rapid." },
+  { id:"l6_30", unit:"L6", tier:"key", zh:"\u5979\u4eec\u5168\u9762\u4eab\u6709\u793e\u4f1a\u798f\u5229\u3002", de:"Frauen **genie\u00dfen** in einem gro\u00dfen Umfang Sozialhilfe." },
+  { id:"l6_31", unit:"L6", tier:"key", zh:"\u5979\u4eec\u53c2\u653f\u8bae\u653f\u7684\u80fd\u529b\u548c\u7a0b\u5ea6\u90fd\u8fdb\u4e00\u6b65\u63d0\u9ad8\u3002", de:"Ihre **Teilnahme am** politischen Leben wird immer **intensiver**." },
+  { id:"l6_32", unit:"L6", tier:"key", zh:"\u5728\u5bb6\u5ead\u751f\u6d3b\u4e2d\uff0c\u5987\u5973\u7684\u5e73\u7b49\u5730\u4f4d\u4e5f\u5f97\u5230\u5b9e\u73b0\u3002", de:"Auch im Familienleben **ist** die Gleichberechtigung **verwirklicht**." },
+  { id:"l6_33", unit:"L6", tier:"key", zh:"\u59bb\u5b50\u53c2\u4e0e\u5bb6\u5ead\u65e5\u5e38\u5f00\u652f\u3001\u5bb6\u5ead\u6295\u8d44\u3001\u5b69\u5b50\u5347\u5b66\u7b49\u5bb6\u5ead\u4e8b\u52a1\u51b3\u7b56\u7684\u6bd4\u4f8b\uff0c\u6bd4\u5341\u5e74\u524d\u660e\u663e\u63d0\u9ad8\u3002", de:"Die Teilnahme der Frauen an wichtigen famili\u00e4ren Angelegenheiten wie Alltagsausgaben, Familieninvestition und Kindererziehung **ist** im Vergleich zu den letzten 10 Jahren offensichtlich **erh\u00f6ht**." },
+  { id:"l6_34", unit:"L6", tier:"key", zh:"\u4e0d\u5c11\u5987\u5973\u8fd8\u671f\u5f85\u6539\u53d8\u4f20\u7edf\u7684\u6027\u522b\u5206\u5de5\u6a21\u5f0f\u3002", de:"Viele Frauen **hoffen auf** eine Ver\u00e4nderung der traditionellen Geschlechtsrollen." },
+  { id:"l6_35", unit:"L6", tier:"key", zh:"\u5979\u4eec\u8ba4\u4e3a\uff0c\u7537\u4eba\u4e5f\u5e94\u8be5\u4e3b\u52a8\u627f\u62c5\u4e00\u5b9a\u7684\u5bb6\u52a1\u52b3\u52a8\u3002", de:"Sie **vertreten die Meinung**, **dass** M\u00e4nner freiwillig gewisse Hausarbeit **erledigen** sollen." },
+
+  // ---------- L7 ----------
+  { id:"l7_01", unit:"L7", tier:"key", zh:"\u5728\u5fb7\u56fd\u7684\u517b\u8001\u9662\u91cc\uff0c\u6709\u5341\u591a\u4e07\u8001\u4eba\u6ca1\u6709\u5f97\u5230\u8db3\u591f\u7684\u62a4\u7406\u3002", de:"Hunderttausende Bewohner von Seniorenheimen in Deutschland **werden** nicht ausreichend **gepflegt**." },
+  { id:"l7_02", unit:"L7", tier:"key", zh:"\u6709\u5341\u56db\u4e07\u591a\u4eba\u88ab\u7528\u680f\u6746\u6216\u76ae\u5e26\u56fa\u5b9a\u5728\u5e8a\u4e0a\u6216\u8f6e\u6905\u91cc\u3002", de:"Mehr als 140.000 Menschen **werden** mit Gittern oder Gurten im Bett oder Rollstuhl **festgehalten**." },
+  { id:"l7_03", unit:"L7", tier:"key", zh:"\u4ed6\u4eec\u4e2d\u7684\u4e00\u4e07\u56db\u5343\u4eba\u7f3a\u5c11\u6cd5\u5f8b\u89c4\u5b9a\u7684\u6cd5\u5b98\u6307\u4ee4\u3002", de:"**Bei** 14.000 von ihnen **fehlt** die daf\u00fcr vorgeschriebene richterliche Anordnung." },
+  { id:"l7_04", unit:"L7", tier:"key", zh:"\u533b\u7597\u4fdd\u9669\u516c\u53f8\u5728\u63d0\u4ea4\u5173\u4e8e\u5fb7\u56fd\u62a4\u7406\u72b6\u51b5\u7684\u65b0\u8d28\u91cf\u62a5\u544a\u65f6\uff0c\u901a\u62a5\u4e86\u8fd9\u4e00\u60c5\u51b5\u3002", de:"Das **teilten** die Krankenkassen bei der Vorlage ihres neuen Qualit\u00e4tsberichts zur Pflege in Deutschland **mit**." },
+  { id:"l7_05", unit:"L7", tier:"key", zh:"\u4fdd\u9669\u516c\u53f8\u8054\u5408\u4f1a\u8463\u4e8b\u57fa\u5f17\u8981\u6c42\u5927\u5e45\u51cf\u5c11\u6b64\u7c7b\u9650\u5236\u81ea\u7531\u7684\u884c\u4e3a\uff0c\u5e76\u5728\u4efb\u4f55\u60c5\u51b5\u4e0b\u90fd\u9075\u5faa\u6cd5\u5f8b\u9014\u5f84\u3002", de:"Kassenverbandsvorstand Gernot Kiefer **forderte**, die H\u00e4ufigkeit solcher Freiheitseinschr\u00e4nkungen deutlich zu reduzieren und in jedem Fall den Rechtsweg **einzuhalten**." },
+  { id:"l7_06", unit:"L7", tier:"key", zh:"\u5361\u841d\u8389\u5a1c\u4e2d\u5b66\u6bd5\u4e1a\u540e\u5148\u5b66\u4e86\u5bb6\u653f\uff0c\u7136\u540e\u53c8\u5b66\u4e86\u8001\u5e74\u62a4\u7406\u3002", de:"Karoline **lernt** nach dem Schulabschluss Hauswirtschaft, dann Altenpflege." },
+  { id:"l7_07", unit:"L7", tier:"key", zh:"\u73b0\u5728\u5979\u505a\u4e86\u6bcd\u4eb2\uff0c\u5446\u5728\u5bb6\u4e2d\uff0c\u4f4f\u5728\u7236\u6bcd\u5bb6\u91cc\u3002", de:"Jetzt ist sie Mutter und Hausfrau und **lebt bei** ihren Eltern." },
+  { id:"l7_08", unit:"L7", tier:"key", zh:"\u7236\u6bcd\u4f4f\u5728\u5e95\u697c\uff0c\u5361\u841d\u8389\u5a1c\u548c\u5979\u7684\u4e08\u592b\u53ca\u4e24\u4e2a\u513f\u5b50\u4f4f\u5728\u4e8c\u697c\u3002", de:"Im Erdgeschoss wohnen Vater und Mutter, **im ersten Stock** Karoline mit ihrem Mann und den beiden S\u00f6hnen." },
+  { id:"l7_09", unit:"L7", tier:"key", zh:"\u51e0\u5e74\u6765\uff0c\u5979\u6709\u65f6\u51e0\u4e4e\u6bcf\u5206\u949f\u90fd\u4f1a\u542c\u5230\u623f\u5b50\u91cc\u54cd\u8d77\u6bcd\u4eb2\u90a3\u6c38\u4e0d\u505c\u6b47\u3001\u547c\u558a\u7740\u5979\u540d\u5b57\u7684\u58f0\u97f3\u3002", de:"Seit Jahren **h\u00f6rt** sie manchmal min\u00fctlich die nie verstummende Stimme ihrer Mutter durch das Haus **hallen**, die ihren Namen ruft." },
+  { id:"l7_10", unit:"L7", tier:"key", zh:"\u5361\u841d\u5faa\u7740\u8fd9\u58f0\u97f3\uff0c\u4e3a\u6bcd\u4eb2\u7a7f\u8863\u3001\u716e\u996d\uff0c\u5e2e\u5979\u68b3\u6d17\uff0c\u966a\u5979\u8bf4\u8bdd\u3002", de:"Karo **folgt** der Stimme, **zieht** ihre Mutter **an**, kocht f\u00fcr sie, hilft ihr beim Waschen und redet mit ihr." },
+  { id:"l7_11", unit:"L7", tier:"key", zh:"\u5982\u679c\u6bcd\u4eb2\u4ece\u5e95\u697c\u5f80\u4e8c\u697c\u6253\u5341\u6b21\u7535\u8bdd\uff0c\u5361\u841d\u5c31\u63a5\u5341\u6b21\uff0c\u5373\u4f7f\u5979\u6b63\u5728\u54c4\u5b69\u5b50\u7761\u89c9\u4e5f\u662f\u5982\u6b64\u3002", de:"Wenn die Mutter zehn Mal in Folge **telefoniert**, nimmt Karo zehn Mal **ab**, **selbst wenn** sie gerade ihre Kinder ins Bett bringt." },
+  { id:"l7_12", unit:"L7", tier:"key", zh:"\u5f53\u4e08\u592b\u4e3a\u6b64\u561f\u56d4\u65f6\uff0c\u5979\u4f1a\u8bf4\u90a3\u53e5\u5e38\u8bf4\u7684\u8bdd\u6765\u5b89\u629a\u4ed6\uff1a\u201c\u8fd9\u53ef\u4e0d\u662f\u5979\u7684\u9519\u5440\u3002\u201d", de:"Wenn Karos Mann deswegen grummelt, **beschwichtigt** sie ihn und sagt den Satz, den sie h\u00e4ufig sagt: \u201eSie kann doch nichts daf\u00fcr.\u201c" },
+  { id:"l7_13", unit:"L7", tier:"key", zh:"1901\u5e74\uff0c\u5fb7\u56fd\u533b\u751f\u963f\u5c14\u8328\u6d77\u9ed8\u63cf\u8ff0\u4e86\u7b2c\u4e00\u4e2a\u75c5\u4f8b\uff0c\u8fd9\u79cd\u75c5\u540e\u6765\u88ab\u79f0\u4e3a\u963f\u5c14\u8328\u6d77\u9ed8\u75c7\u3002", de:"Im Jahr 1901 **beschrieb** der deutsche Arzt Alzheimer den ersten Fall der Krankheit, welche sp\u00e4ter **als** Alzheimer-Krankheit bekannt **wurde**." },
+  { id:"l7_14", unit:"L7", tier:"key", zh:"\u5176\u7279\u5f81\u662f\u8ba4\u77e5\u529f\u80fd\u4e0d\u65ad\u6076\u5316\uff0c\u901a\u5e38\u4f34\u6709\u65e5\u5e38\u751f\u6d3b\u80fd\u529b\u7684\u51cf\u9000\uff0c\u5e76\u51fa\u73b0\u5404\u79cd\u795e\u7ecf\u7cbe\u795e\u75c7\u72b6\u548c\u884c\u4e3a\u969c\u788d\u3002", de:"**Charakteristisch** ist eine zunehmende Verschlechterung der kognitiven Leistungsf\u00e4higkeit, die in der Regel mit einer Abnahme der t\u00e4glichen Aktivit\u00e4ten und mit Verhaltensauff\u00e4lligkeiten **einhergeht**." },
+  { id:"l7_15", unit:"L7", tier:"key", zh:"\u4f46\u76f4\u52301994\u5e74\u7f8e\u56fd\u524d\u603b\u7edf\u91cc\u6839\u5ba3\u5e03\u7f79\u60a3\u6b64\u75c5\uff0c\u8fd9\u4e00\u75be\u75c5\u624d\u5f15\u8d77\u5168\u7403\u5173\u6ce8\u3002", de:"Diese Krankheit **erregte** erst im Jahre 1994 weltweit gro\u00dfe Aufmerksamkeit, **als** der ehemalige US-Pr\u00e4sident Reagan **erkl\u00e4rte**, dass er an der Alzheimer-Krankheit litt." },
+  { id:"l7_16", unit:"L7", tier:"key", zh:"\u5f97\u8fd9\u79cd\u75c5\u7684\u51e0\u4e4e\u90fd\u662f\u8001\u5e74\u4eba\u3002", de:"Von Alzheimer **sind** fast ausschlie\u00dflich Menschen h\u00f6heren Alters **betroffen**." },
+  { id:"l7_17", unit:"L7", tier:"fall", zh:"65\u5c81\u7684\u8001\u5e74\u4eba\u670910%\u4f1a\u53d1\u75c5\uff0c\u5230\u4e8680\u5c81\uff0c\u5176\u6bd4\u4f8b\u4e0a\u5347\u523040%\u3002", de:"**Unter** den 65-J\u00e4hrigen sind etwa **zehn Prozent** betroffen, **bei** den 80-J\u00e4hrigen sind es bereits 40 Prozent." },
+  { id:"l7_18", unit:"L7", tier:"key", zh:"\u76ee\u524d\u5df2\u77e5\u6700\u5e74\u8f7b\u7684\u60a3\u800527\u5c81\u5f97\u75c5\uff0c33\u5c81\u79bb\u4e16\u3002", de:"Der j\u00fcngste bisher bekannte Alzheimer-Patient **erkrankte** mit 27 Jahren und starb mit 33." },
+  { id:"l7_21", unit:"L7", tier:"key", zh:"\u6211\u4eec\u719f\u6089\u7684\u4e16\u754c\u7ea7\u540d\u4eba\u4e2d\uff0c\u4e5f\u6709\u4e0d\u5c11\u963f\u5c14\u8328\u6d77\u9ed8\u75c7\u60a3\u8005\u3002", de:"Mehrere Personen, die einmal in der Welt bekannt **sind**, **leiden** heute **an** dieser Krankheit." },
+  { id:"l7_22", unit:"L7", tier:"key", zh:"\u66fe\u7ecf\u7684\u8f89\u714c\uff0c\u5982\u4eca\u4ed6\u4eec\u5df2\u5168\u7136\u65e0\u4ece\u5fc6\u8d77\u3002", de:"**Der Erfolge**, die sie einstmals erzielt haben, **k\u00f6nne** sie **sich** \u00fcberhaupt nicht **entsinnen**." },
+  { id:"l7_23", unit:"L7", tier:"key", zh:"\u66fe\u7ecf\u7684\u777f\u667a\uff0c\u4e5f\u5728\u4ed6\u4eec\u8eab\u4e0a\u518d\u96be\u5bfb\u89c5\u3002", de:"**Bei** ihnen ist Klugheit und Weitsicht nicht mehr **aufzufinden**." },
+  { id:"l7_24", unit:"L7", tier:"key", zh:"\u6211\u4eec\u5e94\u5f53\u52aa\u529b\uff0c\u8ba9\u5e73\u5e38\u5bb6\u5ead\u5728\u4eb2\u4eba\u60a3\u75c5\u65f6\u4e5f\u80fd\u4ece\u5bb9\u5e94\u5bf9\u3002", de:"Wir sollen uns darum **k\u00fcmmern**, **dass** die einfachen Familien gut vorbereitet sein k\u00f6nnen, **wenn** in der Familie jemand an dieser Krankheit **leidet**." },
+  { id:"l7_19", unit:"L7", tier:"key", zh:"\u6211\u4eec\u5173\u6ce8\u7684\u662f\uff0c\u5982\u4f55\u7528\u79d1\u5b66\u7684\u6001\u5ea6\u548c\u4eb2\u60c5\u7684\u529b\u91cf\u53bb\u6b63\u89c6\u963f\u5c14\u8328\u6d77\u9ed8\u75c7\u3002", de:"Was f\u00fcr uns wichtig ist, ist, **dass** man **mit** der Alzheimer-Krankheit wissenschaftlich vern\u00fcnftig und mit famili\u00e4rer W\u00e4rme **umgeht**." },
+  { id:"l7_20", unit:"L7", tier:"key", zh:"\u8ba9\u5e73\u6c11\u60a3\u8005\u6709\u4f53\u9762\u3001\u6709\u5c0a\u4e25\u5730\u8d70\u5411\u751f\u547d\u7684\u5915\u9633\u3002", de:"Die Patienten sollen w\u00fcrdevoll aus dem Leben **scheiden**." },
+
+  // ---------- L8 ----------
+  { id:"l8_01", unit:"L8", tier:"must", zh:"\u571f\u8033\u5176\u603b\u7edf\u5c45\u5c14\u547c\u5401\u5728\u5fb7\u5c45\u4f4f\u7684\u571f\u8033\u5176\u4eba\u878d\u5165\u5fb7\u56fd\u793e\u4f1a\uff0c\u6210\u4e3a\u5fb7\u56fd\u793e\u4f1a\u7684\u4e00\u90e8\u5206\u3002", de:"Der t\u00fcrkische Staatspr\u00e4sident G\u00fcl hat in Deutschland lebende T\u00fcrken **aufgerufen**, Teil der deutschen Gesellschaft zu werden." },
+  { id:"l8_02", unit:"L8", tier:"must", zh:"\u4ed6\u5728\u300a\u5357\u5fb7\u610f\u5fd7\u62a5\u300b\u7684\u91c7\u8bbf\u4e2d\u8bf4\uff0c\u5728\u5fb7\u571f\u8033\u5176\u4eba\u5e94\u8be5\u5b66\u5fb7\u8bed\uff0c\u5e76\u4e14\u8bf4\u5f97\u6d41\u7545\u6807\u51c6\u3001\u6ca1\u6709\u53e3\u97f3\u3002", de:"Sie sollten Deutsch lernen, \u201eund zwar flie\u00dfend und ohne Akzent\u201c, **sagte** G\u00fcl in einem Interview." },
+  { id:"l8_03", unit:"L8", tier:"must", zh:"\u5c45\u5c14\u8ba4\u4e3a\uff0c\u7236\u6bcd\u5747\u662f\u571f\u8033\u5176\u4eba\u5374\u6548\u529b\u4e8e\u5fb7\u56fd\u56fd\u5bb6\u961f\u7684\u7403\u5458\u5384\u9f50\u5c14\uff0c\u662f\u878d\u5165\u5fb7\u56fd\u7684\u4e00\u4e2a\u6781\u5176\u6210\u529f\u7684\u4f8b\u5b50\u3002", de:"Den Fu\u00dfballer \u00d6zil, der t\u00fcrkische Eltern hat und in der deutschen Nationalmannschaft spielt, **nannte** G\u00fcl \u201eein sehr gelungenes Beispiel f\u00fcr Integration\u201c." },
+  { id:"l8_04", unit:"L8", tier:"must", zh:"\u5c45\u5c14\u8bf4\uff0c\u5982\u679c\u5384\u9f50\u5c14\u5f53\u521d\u95ee\u4ed6\u8be5\u4e3a\u54ea\u4e2a\u56fd\u5bb6\u8e22\u7403\uff0c\u4ed6\u4f1a\u9f13\u52b1\u5384\u9f50\u5c14\u4e3a\u5fb7\u56fd\u961f\u6548\u529b\u3002", de:"**H\u00e4tte** \u00d6zil ihn gefragt, f\u00fcr wen er spielen solle, \u201e**h\u00e4tte** ich ihn ermutigt, im deutschen Team zu spielen\u201c, sagte G\u00fcl." },
+  { id:"l8_05", unit:"L8", tier:"must", zh:"\u5c45\u5c14\u5efa\u8bae\uff0c\u5fb7\u56fd\u7684\u79fb\u6c11\u878d\u5165\u5de5\u4f5c\u5728\u5e7c\u513f\u56ed\u65f6\u671f\u5c31\u5fc5\u987b\u5f00\u5c55\u3002", de:"G\u00fcl forderte, die Integration **m\u00fcsse** in Deutschland schon im Kindergarten beginnen." },
+  { id:"l8_06", unit:"L8", tier:"must", zh:"\u4ed6\u8bf4\uff0c\u8fc7\u53bb\u5728\u79fb\u6c11\u878d\u5165\u95ee\u9898\u4e0a\uff0c\u5fb7\u56fd\u548c\u571f\u8033\u5176\u65b9\u9762\u90fd\u72af\u8fc7\u9519\u8bef\u3002", de:"In der Vergangenheit **seien** bei der Integration Fehler gemacht worden, sowohl auf deutscher wie auf t\u00fcrkischer Seite." },
+  { id:"l8_07", unit:"L8", tier:"must", zh:"\u540c\u65f6\uff0c\u4ed6\u5bf9\u5fb7\u56fd\u548c\u5176\u4ed6\u6b27\u6d32\u56fd\u5bb6\u65e5\u76ca\u589e\u957f\u7684\u53cd\u4f0a\u65af\u5170\u60c5\u7eea\u8868\u793a\u62c5\u5fe7\u3002", de:"Zugleich **zeigte er sich** beunruhigt **\u00fcber** eine wachsende antiislamische Stimmung in Deutschland und in anderen europ\u00e4ischen L\u00e4ndern." },
+  { id:"l8_08", unit:"L8", tier:"must", zh:"\u5c45\u5c14\u8bf4\uff0c\u8fd9\u4e9b\u53d7\u5f71\u54cd\u56fd\u5bb6\u7684\u201c\u653f\u6cbb\u5bb6\u548c\u77e5\u8bc6\u5206\u5b50\u201d\u5e94\u8be5\u5728\u8fd9\u65b9\u9762\u6709\u6240\u4f5c\u4e3a\u3002", de:"\u201ePolitiker und die Intellektuellen\u201c in den betroffenen Staaten **m\u00fcssten** dagegen etwas **unternehmen**, sagte G\u00fcl." },
+  { id:"l8_09", unit:"L8", tier:"must", zh:"\u8fd1\u5e74\u6765\uff0c\u4e13\u4e1a\u4eba\u5458\u7684\u77ed\u7f3a\u5df2\u53ef\u4ee5\u660e\u663e\u5730\u611f\u89c9\u5230\u3002", de:"Seit einiger Zeit ist der Engpass an qualifizierten Arbeitskr\u00e4ften bereits deutlich **sp\u00fcrbar**." },
+  { id:"l8_10", unit:"L8", tier:"must", zh:"\u5bf9\u5fb7\u56fd\u6765\u8bf4\uff0c\u5236\u5b9a\u5f00\u653e\u548c\u9074\u9009\u7684\u6218\u7565\u4ee5\u8d62\u5f97\u6709\u4e13\u95e8\u6280\u80fd\u7684\u79fb\u6c11\uff0c\u5df2\u523b\u4e0d\u5bb9\u7f13\u3002", de:"Es ist f\u00fcr Deutschland **h\u00f6chste Zeit**, **dass** man \u00d6ffnungs- und Auswahlstrategien entwickelt und damit qualifizierte Zuwanderer **gewinnt**." },
+  { id:"l8_11", unit:"L8", tier:"must", zh:"\u96c7\u4e3b\u8981\u505a\u7684\u4e8b\u60c5\u771f\u7684\u5f88\u591a\u3002", de:"**An** Aufgaben f\u00fcr die Arbeitgeber **fehlt es** wahrlich nicht." },
+  { id:"l8_12", unit:"L8", tier:"must", zh:"\u4ed6\u4eec\u5e94\u8be5\u63d0\u4f9b\u66f4\u591a\u66f4\u5feb\u878d\u5165\u7684\u673a\u4f1a\uff0c\u6bd4\u5982\u5f00\u8bbe\u4f01\u4e1a\u5e7c\u513f\u56ed\uff0c\u8ba9\u79fb\u6c11\u5bb6\u5c5e\u5b66\u4e60\u8bed\u8a00\u3002", de:"Sie sollen mehr Integrationsangebote **machen**, z.B. mehr Betriebskinderg\u00e4rten **einrichten** und ihren Familienangeh\u00f6rigen Angebote zum Spracherwerb machen." },
+  { id:"l8_13", unit:"L8", tier:"must", zh:"\u5728\u4ed6\u4eec\u6c42\u804c\u65f6\uff0c\u4e0d\u5e94\u4ec5\u56e0\u540d\u5b57\u5c31\u53d6\u7b11\u548c\u6b67\u89c6\u4ed6\u4eec\u3002", de:"Bei Bewerbungen sollen sie die qualifizierten Bewerber nicht schon allein **aufgrund** ihres Namens auslachen und diskriminieren." },
+  { id:"l8_14", unit:"L8", tier:"must", zh:"\u60df\u6709\u5982\u6b64\uff0c\u201c\u6700\u4f73\u7684\u5934\u8111\u201d\u624d\u6709\u53ef\u80fd\u51b3\u5b9a\u7559\u5728\u5fb7\u56fd\u3002", de:"**Nur durch** diese Ma\u00dfnahmen ist es **m\u00f6glich**, dass sich die \u201ebesten K\u00f6pfe\u201c f\u00fcr Deutschland entscheiden." },
+  { id:"l8_15", unit:"L8", tier:"must", zh:"\u4eca\u5929\uff0c\u6709\u6570\u4ee5\u767e\u4e07\u8ba1\u7684\u7b2c\u4e09\u4ee3\u751a\u81f3\u7b2c\u56db\u4ee3\u571f\u8033\u5176\u4eba\u751f\u6d3b\u5728\u5fb7\u56fd\u3002", de:"Heute leben Millionen T\u00fcrken in dritter und sogar vierter Generation in Deutschland." },
+  { id:"l8_16", unit:"L8", tier:"must", zh:"\u5c3d\u7ba1\u6709\u8bb8\u591a\u597d\u7684\u4f8b\u5b50\uff0c\u4f46\u8981\u8bf4\u5728\u5404\u65b9\u9762\u90fd\u878d\u5408\u4e86\u8fd8\u4e3a\u65f6\u8fc7\u65e9\u3002", de:"**Doch wenn** es **auch** viele positive Beispiele gibt, die Integration ist noch lange nicht in allen F\u00e4llen **gelungen**." },
+  { id:"l8_17", unit:"L8", tier:"must", zh:"\u8054\u90a6\u603b\u7406\u9ed8\u514b\u5c14\u4e5f\u66fe\u6307\u51fa\u79fb\u6c11\u878d\u5408\u8fc7\u7a0b\u4e2d\u5b58\u5728\u7684\u95ee\u9898\u3002", de:"Auch Bundeskanzlerin Merkel hat **auf** Probleme bei der Integration von Einwanderern **hingewiesen**." },
+  { id:"l8_18", unit:"L8", tier:"must", zh:"\u8fd9\u4f4d\u57fa\u6c11\u76df\u9996\u8111\u5728\u4e00\u6b21\u91c7\u8bbf\u4e2d\u8bf4\uff0c\u6211\u4eec\u867d\u7136\u53d6\u5f97\u4e86\u4e00\u4e9b\u6210\u7ee9\u3002", de:"Zwar **habe** man einiges geschafft, sagte die CDU-Chefin in einem Interview." },
+  { id:"l8_19", unit:"L8", tier:"must", zh:"\u4f46\u5728\u8bb8\u591a\u5730\u65b9\u8fd8\u6709\u5de5\u4f5c\u8981\u505a\u3002", de:"**An** vielen Stellen **gebe** es aber noch Arbeit." },
+  { id:"l8_20", unit:"L8", tier:"must", zh:"\u201c\u53ea\u6709\u61c2\u5f97\u8bed\u8a00\uff0c\u624d\u80fd\u5145\u5206\u5730\u7406\u89e3\u4e00\u4e2a\u56fd\u5bb6\u3002\u201d", de:"\u201eMan kann **sich** ein Land nur **erschlie\u00dfen**, wenn man die Sprache kann.\u201c" },
+  { id:"l8_21", unit:"L8", tier:"must", zh:"\u5982\u679c\u7236\u6bcd\u81ea\u5df1\u4e5f\u5b66\u5fb7\u8bed\uff0c\u5e76\u9f13\u52b1\u5b69\u5b50\u770b\u5fb7\u56fd\u7535\u89c6\u3001\u8bfb\u5fb7\u6587\u62a5\u7eb8\uff0c\u5c31\u4e3a\u5b69\u5b50\u505a\u4e86\u6700\u597d\u7684\u4e8b\u3002", de:"Eltern **t\u00e4ten** ihren Kindern den gr\u00f6\u00dften Gefallen, **wenn** sie selbst auch Deutsch **lernten** und ihre Kinder dazu **animierten**, deutsche Fernsehsendungen zu sehen und deutsche Zeitungen zu lesen." },
+  { id:"l8_22", unit:"L8", tier:"must", zh:"\u9ed8\u514b\u5c14\u8bf4\uff0c\u867d\u7136\u4eba\u4eec\u4e0d\u8be5\u5fd8\u8bb0\u81ea\u5df1\u7684\u6587\u5316\u6e0a\u6e90\u3002", de:"Zwar **d\u00fcrfe** man seine kulturelle Identit\u00e4t nicht vergessen, sagte Merkel." },
+  { id:"l8_23", unit:"L8", tier:"must", zh:"\u201c\u4f46\u4eba\u4eec\u5fc5\u987b\u5728\u6240\u751f\u6d3b\u7684\u56fd\u5bb6\u91cc\u6709\u5982\u9c7c\u5f97\u6c34\u7684\u611f\u89c9\u3002\u201d", de:"\u201eAber man muss **sich wie ein Fisch im Wasser** wohl f\u00fchlen in dem Land, in dem man lebt.\u201c" }
+];
+
+const UNITS = ["L1","L2","L3","L4","L5","L6","L7","L8"];
+const TIERS = [
+  { key:"must", label:"\u5fc5\u80cc \u00b7 \u653f\u6cbb\u5b98\u65b9" },
+  { key:"key",  label:"\u91cd\u70b9 \u00b7 \u79d1\u6280\u6587\u65c5" },
+  { key:"fall", label:"\u515c\u5e95 \u00b7 \u8d22\u7ecf\u6570\u636e" }
+];
+const TIER_TAG = { must:"\u5fc5\u80cc", key:"\u91cd\u70b9", fall:"\u515c\u5e95" };
+const DIRS = [ { key:"zh2de", label:"\u4e2d\u8bd1\u5fb7" }, { key:"de2zh", label:"\u5fb7\u8bd1\u4e2d" } ];
+
+let progress = {};
+let selUnits = new Set(UNITS);
+let selTiers = new Set(["must","key","fall"]);
+let dir = "zh2de";
+let weakOnly = false;
+let current = null;
+let revealed = false;
+
+async function loadProgress() {
+  try { const raw = localStorage.getItem("drill-progress-v2"); if (raw) progress = JSON.parse(raw); }
+  catch (e) { progress = {}; }
+}
+async function saveProgress() {
+  try { localStorage.setItem("drill-progress-v2", JSON.stringify(progress)); } catch (e) {}
+}
+function pkey(id){ return id + "|" + dir; }
+function boxOf(id){ const k = pkey(id); return (progress[k] && progress[k].box) || 1; }
+
+function pool() {
+  return CARDS.filter(c => selUnits.has(c.unit) && selTiers.has(c.tier))
+              .filter(c => !weakOnly || boxOf(c.id) < 5);
+}
+function pickNext() {
+  const p = pool(); if (!p.length) return null;
+  const sorted = [...p].sort((a,b) => {
+    const ba = boxOf(a.id), bb = boxOf(b.id);
+    if (ba !== bb) return ba - bb;
+    const sa = (progress[pkey(a.id)]&&progress[pkey(a.id)].seen)||0;
+    const sb = (progress[pkey(b.id)]&&progress[pkey(b.id)].seen)||0;
+    return sa - sb;
+  });
+  const top = sorted.slice(0, Math.min(4, sorted.length));
+  let next = top[Math.floor(Math.random()*top.length)];
+  if (current && next.id === current.id && p.length > 1) next = sorted.find(c => c.id !== current.id) || next;
+  return next;
+}
+function rate(got) {
+  if (!current) return;
+  const k = pkey(current.id);
+  const b = boxOf(current.id);
+  const seen = ((progress[k]&&progress[k].seen)||0) + 1;
+  progress[k] = { box: got ? Math.min(5, b+1) : 1, seen };
+  saveProgress();
+  current = pickNext(); revealed = false; render();
+}
+function deHtml(s){ return s.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>"); }
+
+function render() {
+  const root = document.getElementById("root");
+  const p = pool();
+  const mastered = p.filter(c => boxOf(c.id) === 5).length;
+  const learning = p.filter(c => boxOf(c.id) > 1 && boxOf(c.id) < 5).length;
+  const fresh = p.length - mastered - learning;
+  const total = p.length || 1;
+  const mPct = (mastered/total)*100, lPct = (learning/total)*100;
+
+  const qLang = dir === "zh2de" ? "zh" : "de";
+  const aLang = dir === "zh2de" ? "de" : "zh";
+  const hintText = dir === "zh2de" ? "\u5148\u5728\u8111\u5b50\u91cc\u6216\u7eb8\u4e0a\u628a\u5fb7\u8bed\u5199\u51fa\u6765\uff0c\u518d\u7ffb\u9762\u5bf9\u7167\u3002" : "\u5148\u628a\u8fd9\u53e5\u8bdd\u7684\u4e2d\u6587\u610f\u601d\u8bf4\u51fa\u6765\uff0c\u518d\u7ffb\u9762\u5bf9\u7167\u3002";
+
+  let cardHtml;
+  if (!current) {
+    cardHtml = `<div class="card"><div class="empty">
+      <div class="empty-emoji">\u1f331</div>
+      <div>\u8fd9\u4e00\u7ec4\u6ca1\u6709\u53e5\u5b50\u53ef\u7ec3\u4e86\u3002</div>
+      <div class="hint">\u6362\u4e00\u4e2a\u5355\u5143\u6216\u5c42\u7ea7\uff0c\u6216\u5173\u6389\u201c\u53ea\u7ec3\u8584\u5f31\u201d\u3002</div>
+    </div></div>`;
+  } else {
+    const c = current;
+    const bx = boxOf(c.id);
+    const pips = [1,2,3,4,5].map(i => `<span class="pip ${i<=bx?'fill':''}"></span>`).join("");
+    const qText = dir === "zh2de" ? c.zh : deHtml(c.de);
+    const aText = dir === "zh2de" ? deHtml(c.de) : c.zh;
+    const actions = revealed
+      ? `<button class="btn btn-miss" onclick="rate(false)">\u8fd8\u6ca1\u8bb0\u4f4f</button>
+         <button class="btn btn-got" onclick="rate(true)">\u8bb0\u4f4f\u4e86</button>`
+      : `<button class="btn btn-reveal" onclick="reveal()">${dir==="zh2de"?"\u5199\u5b8c\u4e86\uff0c\u770b\u5fb7\u8bed":"\u60f3\u597d\u4e86\uff0c\u770b\u4e2d\u6587"}</button>`;
+    cardHtml = `<div class="card">
+      <div class="card-meta">
+        <span class="tag unit">${c.unit}</span>
+        <span class="tag tier-${c.tier}">${TIER_TAG[c.tier]}</span>
+        <span class="box-pips">\u719f\u7ec3\u5ea6 ${pips}</span>
+      </div>
+      <p class="q ${qLang}">${qText}</p>
+      ${revealed ? `<div class="a ${aLang}">${aText}</div>` : ``}
+      <div class="spacer"></div>
+      <div class="actions">${actions}</div>
+      ${!revealed ? `<div class="hint">${hintText}</div>` : ``}
+    </div>`;
+  }
+
+  root.innerHTML = `
+    <div class="top">
+      <div>
+        <div class="title">\u4e2d\u5fb7\u4e92\u8bd1 \u00b7 \u63d0\u53d6\u7ec3\u4e60</div>
+        <div class="subtitle">${dir==="zh2de"?"\u770b\u4e2d\u6587 \u2192 \u5199\u5fb7\u8bed \u2192 \u7ffb\u9762\u5bf9\u7167":"\u770b\u5fb7\u8bed \u2192 \u60f3\u4e2d\u6587 \u2192 \u7ffb\u9762\u5bf9\u7167"}</div>
+      </div>
+      <div class="counts"><b>${mastered}</b> \u5df2\u7262\u56fa \u00b7 ${learning} \u5de9\u56fa\u4e2d \u00b7 ${fresh} \u5f85\u5f00\u7ec3</div>
+    </div>
+
+    <div class="filters">
+      <div class="filter-row">
+        <span class="filter-label">\u65b9\u5411</span>
+        ${DIRS.map(d => `<button class="chip dir ${dir===d.key?'on':''}" onclick="setDir('${d.key}')">${d.label}</button>`).join("")}
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">\u5355\u5143</span>
+        ${UNITS.map(u => `<button class="chip ${selUnits.has(u)?'on':''}" onclick="toggleUnit('${u}')">${u}</button>`).join("")}
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">\u5c42\u7ea7</span>
+        ${TIERS.map(t => `<button class="chip tier-${t.key} ${selTiers.has(t.key)?'on':''}" onclick="toggleTier('${t.key}')">${t.label}</button>`).join("")}
+      </div>
+      <div class="toggle-weak" onclick="toggleWeak()">
+        <span class="switch ${weakOnly?'on':''}"></span> \u53ea\u7ec3\u8584\u5f31\u7684\u53e5\u5b50
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="bar">
+        <div class="seg-master" style="width:${mPct}%"></div>
+        <div class="seg-learn" style="width:${lPct}%"></div>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--primary)"></span>\u5df2\u7262\u56fa</span>
+        <span><span class="dot" style="background:var(--key)"></span>\u5de9\u56fa\u4e2d</span>
+        <span><span class="dot" style="background:var(--line)"></span>\u5f85\u5f00\u7ec3</span>
+      </div>
+    </div>
+
+    ${cardHtml}
+
+    <div class="reset"><button onclick="resetAll()">\u6e05\u7a7a\u8fdb\u5ea6\uff0c\u91cd\u65b0\u5f00\u59cb</button></div>
+  `;
+}
+
+function reveal(){ revealed = true; render(); }
+function setDir(d){ dir = d; current = pickNext(); revealed = false; render(); }
+function toggleUnit(u){ selUnits.has(u)?selUnits.delete(u):selUnits.add(u); if(!selUnits.size) selUnits.add(u); current=pickNext(); revealed=false; render(); }
+function toggleTier(t){ selTiers.has(t)?selTiers.delete(t):selTiers.add(t); if(!selTiers.size) selTiers.add(t); current=pickNext(); revealed=false; render(); }
+function toggleWeak(){ weakOnly=!weakOnly; current=pickNext(); revealed=false; render(); }
+async function resetAll(){ progress={}; await saveProgress(); current=pickNext(); revealed=false; render(); }
+
+(async function init(){ await loadProgress(); current = pickNext(); render(); })();
+</script>
